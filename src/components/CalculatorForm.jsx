@@ -6,6 +6,7 @@ const CalculatorForm = () => {
   const [risk, setRisk] = useState('');
   const [riskType, setRiskType] = useState('%');
   const [result, setResult] = useState('');
+  const [riskAmount, setRiskAmount] = useState('');
 
   const totalRisk = () => {
     const parsedRisk = parseFloat(risk);
@@ -27,12 +28,16 @@ const CalculatorForm = () => {
     const risk = totalRisk();
 
     if (isNaN(parsedStopLossTicks) || parsedStopLossTicks === 0) {
-      setResult("Invalid stop loss ticks"); // Handle invalid input
+      setResult("Invalid stop loss ticks");
+      setRiskAmount('');
       return;
     }
 
-    const calculatedResult = (risk / parsedStopLossTicks).toFixed(2);
-    setResult(calculatedResult);
+    const calculatedLotSize = (risk / parsedStopLossTicks).toFixed(2);
+    setResult(calculatedLotSize);
+
+    const calculatedRiskAmount = (calculatedLotSize * parsedStopLossTicks).toFixed(2);
+    setRiskAmount(calculatedRiskAmount);
   };
 
   return (
@@ -81,8 +86,14 @@ const CalculatorForm = () => {
       <button onClick={handleCalculate}>Calculate</button>
       {result && (
         <div className="result">
-          <h3>Lot size:</h3>
-          <p>{result}</p>
+          <div className="result-field">
+            <h3>Lot Size:</h3>
+            <p>{result}</p>
+          </div>
+          <div className="result-field">
+            <h3>Risk Amount:</h3>
+            <p>{riskAmount}</p>
+          </div>
         </div>
       )}
     </div>
