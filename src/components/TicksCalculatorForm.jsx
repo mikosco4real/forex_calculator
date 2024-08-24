@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './../assets/css/TicksCalculator.css';
 
 const CalculatorForm = () => {
   const [accountSize, setAccountSize] = useState('');
@@ -77,6 +78,7 @@ const CalculatorForm = () => {
             id="riskType"
             value={riskType}
             onChange={(e) => setRiskType(e.target.value)}
+            className="risk-type-select"
           >
             <option value="%">%</option>
             <option value="USD">USD</option>
