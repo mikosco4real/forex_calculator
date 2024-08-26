@@ -88,6 +88,15 @@ button:hover {
   flex: 1;
 }
 
+.deposit-currency-select {
+  margin-left: 0px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  width: 100%;
+}
+
 .risk-type-select {
   margin-left: 10px;
   padding: 10px;

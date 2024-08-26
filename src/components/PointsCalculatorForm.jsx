@@ -2,11 +2,18 @@ import React, { useState } from 'react';
 import Select from 'react-select';
 import './../assets/css/PointsCalculator.css';
 
+const GOLD = 'XAUUSD'
+
 const instrumentOptions = [
-  { value: 'XAUUSD', label: 'XAUUSD' },
+  { value: GOLD, label: GOLD},
   { value: 'GBPJPY', label: 'GBPJPY' },
   { value: 'GBPUSD', label: 'GBPUSD' },
   { value: 'USDJPY', label: 'USDJPY' },
+  { value: 'USDCAD', label: 'USDCAD' },
+  { value: 'GBPCAD', label: 'GBPCAD' },
+  { value: 'EURUSD', label: 'EURUSD' },
+  { value: 'USDCHF', label: 'USDCHF' },
+  { value: 'EURCHF', label: 'EURCHF' },
   // Add more instruments here
 ];
 
@@ -22,53 +29,74 @@ const PointsCalculatorForm = () => {
   const [lotSize, setLotSize] = useState('');
   const [riskAmount, setRiskAmount] = useState('');
   const [profitAmount, setProfitAmount] = useState('');
+  const [error, setError] = useState('');
 
-  const calculatePipValue = (pair) => {
-    let pipValue = 0;
-    const lotSize = 100000; // standard lot size for forex pairs
-
-    switch (pair) {
-      case 'XAUUSD':
-        pipValue = (1 / 10) * lotSize / 100; // For 1 lot size in USD
-        break;
-      case 'GBPJPY':
-      case 'USDJPY':
-        pipValue = (1 / 10) * lotSize / 100; // JPY pairs have a pip value of 0.01
-        break;
-      case 'GBPUSD':
-      case 'EURUSD':
-        pipValue = (1 / 10) * lotSize / 100; // For USD quote currency pairs
-        break;
-      default:
-        pipValue = (1 / 10) * lotSize / 100; // Default pip value for other major pairs with USD as the quote currency
+  const getCurrentRate = async (baseCurrency, quoteCurrency) => {
+    try {
+      const response = await fetch(`https://v6.exchangerate-api.com/v6/e9fa0188eb316eddee4b9f2c/latest/${baseCurrency}`);
+      if (!response.ok) {
+        throw new Error(`Error fetching exchange rate for ${baseCurrency}/${quoteCurrency}`);
+      }
+      const data = await response.json();
+      return data.conversion_rates[quoteCurrency] || 1;
+    } catch (err) {
+      setError(`Error fetching exchange rate: ${err.message}`);
+      return 1;
     }
-
-    return pipValue;
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
+    // Validate inputs
+    setError('');
+    const parsedEntrypoint = parseFloat(entryPoint);
     const parsedStopLoss = parseFloat(stopLoss);
     const parsedTakeProfit = parseFloat(takeProfit);
-    const parsedEntrypoint = parseFloat(entryPoint);
-    const parsedRisk = parseFloat(risk);
-    const pipValue = calculatePipValue(instrument.value);
+    const parsedRisk = parseFloat(risk)
 
-    if (isNaN(parsedStopLoss) || isNaN(parsedEntrypoint) || isNaN(parsedRisk) || parsedStopLoss === 0) {
-      alert("Please provide valid inputs for Stop Loss, Take Profit, and Risk.");
-      return;
+    if (isNaN(parsedRisk) || isNaN(parsedEntrypoint) || isNaN(parsedStopLoss) || parsedStopLoss === 0) {
+      setError("All required fields must be filled");
+      return
     }
 
-    const stopLossPips = ((parsedEntrypoint - parsedStopLoss) * pipValue).toFixed(2);
-    const takeProfitPips = ((parsedTakeProfit - parsedEntrypoint) * pipValue).toFixed(2);
-
+    // Calculate risk amount
     const riskAmountCalc = riskType === '%' ? (accountSize * (parsedRisk / 100)) : parsedRisk;
-    const calculatedLotSize = (riskAmountCalc / stopLossPips).toFixed(2);
-    const calculatedRiskAmount = (calculatedLotSize * stopLossPips).toFixed(2);
-    const profitAmountCalc = (takeProfitPips * calculatedLotSize).toFixed(2);
+    
+    // Calculate stop loss distance
+    const stopLossDistance = Math.abs(parsedEntrypoint - parsedStopLoss)
+    const takeProfitDistance = Math.abs(parsedEntrypoint - parsedTakeProfit)
 
-    setLotSize(calculatedLotSize);
-    setRiskAmount(calculatedRiskAmount);
-    setProfitAmount(profitAmountCalc);
+    // Determine pip value
+    const pipValue = instrument.value.includes('JPY') || instrument.value === 'XAUUSD' ? 0.01: 0.0001;
+
+    const stopLossPips = stopLossDistance / pipValue
+    const takeProfitPips = takeProfitDistance / pipValue
+
+    // extract baseCurrency and quoteCurrency
+    const baseCurrency = instrument.value.substring(0, 3)
+    const quoteCurrency = instrument.value.substring(3,)
+
+    // Trade size is usually 100000
+    const TradeSize = instrument.value === GOLD ? 100 : 100000
+
+    // Calculate pipValue in account currency
+    let pipValuePerLot;
+    if (depositCurrency === baseCurrency) {
+      pipValuePerLot = (pipValue / parsedEntrypoint) * TradeSize
+    } else if (depositCurrency === quoteCurrency) {
+      pipValuePerLot = pipValue * TradeSize
+    } else {
+      const crossPairPrice = await getCurrentRate(depositCurrency, quoteCurrency)
+      pipValuePerLot = (pipValue   * TradeSize) / crossPairPrice
+      console.log(crossPairPrice)
+    }
+
+    // Calculate Lot size 
+    const lotSizeCalc = riskAmountCalc / (stopLossPips * pipValuePerLot);
+    
+    // Update lotsize, riskAmount, profitAmount 
+    setLotSize((lotSizeCalc).toFixed(2))
+    setRiskAmount((lotSizeCalc * stopLossPips * pipValuePerLot).toFixed(2))
+    setProfitAmount((lotSizeCalc * takeProfitPips * pipValuePerLot).toFixed(2))
   };
 
   return (
@@ -100,6 +128,7 @@ const PointsCalculatorForm = () => {
           id="depositCurrency"
           value={depositCurrency}
           onChange={(e) => setDepositCurrency(e.target.value)}
+          className="deposit-currency-select"
         >
           <option value="USD">USD</option>
           {/* Add other currencies as needed */}
@@ -172,6 +201,13 @@ const PointsCalculatorForm = () => {
             <h3>Profit Amount:</h3>
             <p>{profitAmount}</p>
           </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="error-message">
+          <h5>Error</h5>
+          <p>{error}</p>
         </div>
       )}
     </div>
