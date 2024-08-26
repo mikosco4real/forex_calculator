@@ -80,14 +80,13 @@ const PointsCalculatorForm = () => {
 
     // Calculate pipValue in account currency
     let pipValuePerLot;
-    if (depositCurrency === baseCurrency) {
+    if (depositCurrency === baseCurrency) { // eg: Given USD as deposit currency - USDCAD, USDJPY, USDCHF
       pipValuePerLot = (pipValue / parsedEntrypoint) * TradeSize
-    } else if (depositCurrency === quoteCurrency) {
+    } else if (depositCurrency === quoteCurrency) { // eg: Given USD as deposit currency - GBPUSD, EURUSD, NZDUSD, XAUUSD
       pipValuePerLot = pipValue * TradeSize
-    } else {
+    } else { // eg: Given USD as deposit currency - GBPJPY, GBPCAD, EURCHF
       const crossPairPrice = await getCurrentRate(depositCurrency, quoteCurrency)
-      pipValuePerLot = (pipValue   * TradeSize) / crossPairPrice
-      console.log(crossPairPrice)
+      pipValuePerLot = (pipValue  * TradeSize) / crossPairPrice
     }
 
     // Calculate Lot size 
