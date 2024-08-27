@@ -9,8 +9,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<AppLayout />}>
+          <Route path="/" element={<PointsCalculator />} />
           <Route path="risk-ticks" element={<TicksCalculator />} />
-          <Route path="stoploss-points" element={<PointsCalculator />} />
         </Route>
       </Routes>
     </Router>

@@ -3,19 +3,13 @@ import Select from 'react-select';
 import './../assets/css/PointsCalculator.css';
 
 const GOLD = 'XAUUSD'
+const pairs = new Set([GOLD, 'EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','USDCAD','NZDUSD','EURGBP','EURJPY','EURCHF','GBPJPY','GBPCHF','AUDJPY','AUDGBP','AUDCHF','NZDJPY','NZDGBP','NZDCHF','EURAUD','EURCAD','EURNZD','GBPAUD','GBPCAD','GBPNZD','CHFJPY','CADJPY','AUDCAD','AUDNZD','CADCHF','CHFGBP','CHFNZD','NZDCAD','EURSGD','EURHKD','EURTRY','GBPSGD','GBPHKD','GBPTRY','AUDSGD','AUDHKD','AUDTRY','NZDSGD','NZDHKD','NZDTRY','CHFSEK','CHFZAR','USDTRY','USDZAR','USDHKD','USDSGD','USDMXN','USDINR','USDBRL','USDCNH','USDNOK','USDSEK','USDPLN','USDDKK','USDHUF','USDILS','USDPHP','USDTHB','USDMYR','USDIDR','USDCZK','USDRUB','USDKZT','USDQAR','USDKWD','USDBHD','USDOMR','USDMAD','USDSAR','XAUUSD','XAGUSD','USDCLP','USDVND','USDNGN'])
 
-const instrumentOptions = [
-  { value: GOLD, label: GOLD},
-  { value: 'GBPJPY', label: 'GBPJPY' },
-  { value: 'GBPUSD', label: 'GBPUSD' },
-  { value: 'USDJPY', label: 'USDJPY' },
-  { value: 'USDCAD', label: 'USDCAD' },
-  { value: 'GBPCAD', label: 'GBPCAD' },
-  { value: 'EURUSD', label: 'EURUSD' },
-  { value: 'USDCHF', label: 'USDCHF' },
-  { value: 'EURCHF', label: 'EURCHF' },
-  // Add more instruments here
-];
+let instrumentOptions = [];
+
+for (const p of pairs) {
+  instrumentOptions.push({value: p, label: p})
+}
 
 const PointsCalculatorForm = () => {
   const [instrument, setInstrument] = useState(instrumentOptions[0]);
@@ -66,7 +60,7 @@ const PointsCalculatorForm = () => {
     const takeProfitDistance = Math.abs(parsedEntrypoint - parsedTakeProfit)
 
     // Determine pip value
-    const pipValue = instrument.value.includes('JPY') || instrument.value === 'XAUUSD' ? 0.01: 0.0001;
+    const pipValue = instrument.value.includes('JPY') || instrument.value.includes('XAU') ? 0.01: 0.0001;
 
     const stopLossPips = stopLossDistance / pipValue
     const takeProfitPips = takeProfitDistance / pipValue
@@ -130,6 +124,7 @@ const PointsCalculatorForm = () => {
           className="deposit-currency-select"
         >
           <option value="USD">USD</option>
+          <option value="AUD">AUD</option>
           {/* Add other currencies as needed */}
         </select>
       </div>

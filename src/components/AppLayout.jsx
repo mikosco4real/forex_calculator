@@ -9,10 +9,10 @@ const AppLayout = () => {
         <h2>Forex Calculator</h2>
         <ul>
           <li>
-            <Link to="/risk-ticks">Lot Size with ticks</Link>
+            <Link to="/">Lot Size Calculator using price</Link>
           </li>
           <li>
-            <Link to="/stoploss-points">Lot Size with price</Link>
+            <Link to="/risk-ticks">Lot Size Calculator using ticks</Link>
           </li>
         </ul>
       </nav>
