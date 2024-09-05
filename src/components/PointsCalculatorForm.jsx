@@ -3,7 +3,7 @@ import Select from 'react-select';
 import './../assets/css/PointsCalculator.css';
 
 const GOLD = 'XAUUSD'
-const pairs = new Set([GOLD, 'EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','USDCAD','NZDUSD','EURGBP','EURJPY','EURCHF','GBPJPY','GBPCHF','AUDJPY','AUDGBP','AUDCHF','NZDJPY','NZDGBP','NZDCHF','EURAUD','EURCAD','EURNZD','GBPAUD','GBPCAD','GBPNZD','CHFJPY','CADJPY','AUDCAD','AUDNZD','CADCHF','CHFGBP','CHFNZD','NZDCAD','EURSGD','EURHKD','EURTRY','GBPSGD','GBPHKD','GBPTRY','AUDSGD','AUDHKD','AUDTRY','NZDSGD','NZDHKD','NZDTRY','CHFSEK','CHFZAR','USDTRY','USDZAR','USDHKD','USDSGD','USDMXN','USDINR','USDBRL','USDCNH','USDNOK','USDSEK','USDPLN','USDDKK','USDHUF','USDILS','USDPHP','USDTHB','USDMYR','USDIDR','USDCZK','USDRUB','USDKZT','USDQAR','USDKWD','USDBHD','USDOMR','USDMAD','USDSAR','XAUUSD','XAGUSD','USDCLP','USDVND','USDNGN'])
+const pairs = new Set([GOLD, 'EURUSD','GBPUSD','USDJPY','USDCHF','AUDUSD','USDCAD','NZDUSD','EURGBP','EURJPY','EURCHF','GBPJPY','GBPCHF','AUDJPY','AUDGBP','AUDCHF','NZDJPY','NZDGBP','NZDCHF','EURAUD','EURCAD','EURNZD','GBPAUD','GBPCAD','GBPNZD','CHFJPY','CADJPY','AUDCAD','AUDNZD','CADCHF','CHFGBP','CHFNZD','NZDCAD','EURSGD','EURHKD','EURTRY','GBPSGD','GBPHKD','GBPTRY','AUDSGD','AUDHKD','AUDTRY','NZDSGD','NZDHKD','NZDTRY','CHFSEK','CHFZAR','USDTRY','USDZAR','USDHKD','USDSGD','USDMXN','USDINR','USDBRL','USDCNH','USDNOK','USDSEK','USDPLN','USDDKK','USDHUF','USDILS','USDPHP','USDTHB','USDMYR','USDIDR','USDCZK','USDRUB','USDKZT','USDQAR','USDKWD','USDBHD','USDOMR','USDMAD','USDSAR','XAUUSD','XAGUSD','USDCLP','USDVND','USDNGN', 'US30USD'])
 
 let instrumentOptions = [];
 
@@ -60,8 +60,10 @@ const PointsCalculatorForm = () => {
     const takeProfitDistance = Math.abs(parsedEntrypoint - parsedTakeProfit)
 
     // Determine pip value
-    const pipValue = instrument.value.includes('JPY') || instrument.value.includes('XAU') ? 0.01: 0.0001;
-
+    let pipValue = instrument.value.includes('JPY') || instrument.value.includes('XAU') ? 0.01: 0.0001;
+    if (instrument.value.includes('US30')) {
+      pipValue = 0.01;
+    }
     const stopLossPips = stopLossDistance / pipValue
     const takeProfitPips = takeProfitDistance / pipValue
 
@@ -70,7 +72,18 @@ const PointsCalculatorForm = () => {
     const quoteCurrency = instrument.value.substring(3,)
 
     // Trade size is usually 100000
-    const TradeSize = instrument.value === GOLD ? 100 : 100000
+    // Consider rewriting to consider cases for XAUAUD, XAUGBP, US30GBP etc.
+    let TradeSize = 0;
+    switch (instrument.value) {
+      case GOLD:
+      TradeSize = 100
+      break
+      case 'US30USD':
+      TradeSize = 10
+      break
+      default:
+      TradeSize = 100000
+  }
 
     // Calculate pipValue in account currency
     let pipValuePerLot;
